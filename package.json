@@ -5,7 +5,7 @@
   "main": "main.ts",
   "scripts": {
     "watch": "webpack-dev-server --hot --config webpack.dev.js",
-    "build": "webpack --config webpack.prod.js",
+    "build": "tsc main.ts --outDir ./dist && webpack --config webpack.prod.js",
     "start": "tsc main.ts --outDir ./dist && electron ./dist/main.js"
   },
   "keywords": [],
