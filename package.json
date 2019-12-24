@@ -8,6 +8,11 @@
     "build": "tsc main.ts --outDir ./dist && webpack --config webpack.prod.js",
     "start": "tsc main.ts --outDir ./dist && electron ."
   },
+  "husky": {
+    "hooks": {
+      "pre-commit": "pretty-quick --staged"
+    }
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -33,7 +38,9 @@
     "eslint-plugin-prettier": "^3.1.2",
     "fork-ts-checker-webpack-plugin": "^4.0.0-beta.4",
     "html-webpack-plugin": "^3.2.0",
+    "husky": "^3.1.0",
     "prettier": "^1.19.1",
+    "pretty-quick": "^2.0.1",
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
     "react-hot-loader": "^4.12.18",
