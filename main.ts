@@ -26,8 +26,10 @@ const createWindow = () => {
   extensions.forEach(e => {
     e.enable && BrowserWindow.addDevToolsExtension(path.join(os.homedir(), extensionPath, e.id, e.version))
   })
-  // 打开开发者工具 = F12
-  mainWindow.webContents.openDevTools({ detach: true })
+  // open dev tools
+  mainWindow.webContents.once('dom-ready', () => {
+    mainWindow.webContents.openDevTools()
+  })
 
   mainWindow.on('closed', () => {
     mainWindow = null

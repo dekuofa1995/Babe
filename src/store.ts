@@ -1,4 +1,4 @@
-import { reducer as settingReducer } from './module/setting'
+import { reducer as settingReducer } from '@module/setting'
 import { combineReducers, createStore } from 'redux'
 
 const rootReducer = combineReducers({

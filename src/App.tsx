@@ -1,6 +1,6 @@
 import { hot } from 'react-hot-loader/root'
 import * as React from 'react'
-import Setting from './module/setting/views/component'
+import { Setting } from '@module/setting'
 
 const App = () => (
   <div>
