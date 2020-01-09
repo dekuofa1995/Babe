@@ -2,43 +2,74 @@
 import { app, BrowserWindow } from 'electron'
 import * as os from 'os'
 import * as path from 'path'
+import * as fs from 'fs'
+import { Menubar, menubar } from 'menubar'
 
-let mainWindow: BrowserWindow
-let extensionPath = '/Library/Application Support/Google/Chrome/Default/Extensions'
-let extensions = [
-  { id: 'fmkadmapgofadopljbjfkapdkoienihi', name: 'React Developer Tools', version: '4.2.1_0', enable: true },
-  { id: 'lmhkpmbekcpmknklioeibfkpmmfibljd', name: 'Redux DevTools', version: '2.17.0_0', enable: false },
+interface Extension {
+  id: string
+  name: string
+  version?: string
+  path?: string
+  enable: boolean
+}
+
+const mb: Menubar = menubar({
+  preloadWindow: true,
+  index: 'http://localhost:8080/index.html', // if use local file, use file://...
+  browserWindow: { webPreferences: { nodeIntegration: true } }, // 集成 node.js fix require is not defined error
+})
+const extensionPath = '/Library/Application Support/Google/Chrome/Default/Extensions'
+const extensions: Array<Extension> = [
+  {
+    id: 'fmkadmapgofadopljbjfkapdkoienihi',
+    name: 'React Developer Tools',
+    enable: true,
+  },
+  {
+    id: 'lmhkpmbekcpmknklioeibfkpmmfibljd',
+    name: 'Redux DevTools',
+    enable: true,
+  },
 ]
+
+const loadDevTool = (parentPath: string, extensions: Array<Extension>) => {
+  const exists = extensions
+    .filter((value) => value.enable)
+    .map((e) => {
+      const extensionPath = path.join(os.homedir(), parentPath, e.id),
+        versionDir = fs
+          .readdirSync(extensionPath, { withFileTypes: true })
+          .find((_) => _.isDirectory())
+
+      if (!versionDir) {
+        console.warn('can not found devtool: %s, please check', extensionPath)
+        return
+      }
+      e.version = versionDir.name
+      e.path = path.join(extensionPath, e.version)
+      return e
+    })
+  const installs = BrowserWindow.getDevToolsExtensions()
+
+  exists.forEach((extension) => {
+    const installed = installs[extension.name]
+    if (!!installed) {
+      if (installed.version === extension.version) return
+      // do replace use exist version
+      console.log('remove extension: %s', extension.name)
+      BrowserWindow.removeDevToolsExtension(extension.name)
+    }
+    BrowserWindow.addDevToolsExtension(extension.path)
+  })
+}
+
+mb.on('after-create-window', () => {
+  // @ts-ignore
+  mb.window.openDevTools()
+})
 const createWindow = () => {
-  mainWindow = new BrowserWindow({
-    width: 1000,
-    height: 600,
-    frame: false,
-    webPreferences: {
-      nodeIntegration: true,
-    },
-  })
-
-  mainWindow.loadURL('http://localhost:8080/index.html')
-  // mainWindow.loadFile(path.join(__dirname, 'dist/index.html'));
-
-  // react dev tools
-  extensions.forEach(e => {
-    e.enable && BrowserWindow.addDevToolsExtension(path.join(os.homedir(), extensionPath, e.id, e.version))
-  })
+  loadDevTool(extensionPath, extensions)
   // open dev tools
-  mainWindow.webContents.once('dom-ready', () => {
-    mainWindow.webContents.openDevTools()
-  })
-
-  mainWindow.on('closed', () => {
-    mainWindow = null
-  })
-
-  mainWindow.on('ready-to-show', () => {
-    mainWindow.show()
-    mainWindow.focus()
-  })
 }
 
 app.on('ready', () => {
@@ -50,5 +81,5 @@ app.on('window-all-closed', () => {
 })
 
 app.on('activate', () => {
-  if (mainWindow === null) createWindow()
+  if (mb === null) createWindow()
 })
